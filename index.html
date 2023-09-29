@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake</title>
+    <style>
+        body{
+            background-color:gray ;
+            display: flex;
+        justify-content: space-around;
+        font-family: Verdana, Geneva, Tahoma, sans-serif;
+
+        }
+        article{
+            display: flex;
+            flex-direction: column;
+
+        }
+        section{
+            display: flex;
+            border: 1px black solid;
+            justify-content: space-between;
+        }
+        div {
+            background-color: green;
+            font-size: 3rem;
+            width: 100px;
+        }
+    </style>
+</head>
+
+<body>
+    <article>
+        <canvas id="canvas" width='480' height="480"></canvas>
+        <section>
+            <span>Dein aktueller Score:</span>
+            <div id="scoreBoard">0</div>
+        </section>
+        <section>
+            <span>Der Highscore:</span>
+            <div id="showHighscore"></div>
+        </section>
+    </article>
+
+    <article>
+        <canvas id="canvas2" width="480" height="480"></canvas>
+        <section>
+            <span>Dein aktueller Score:</span>
+            <div id="scoreBoard2">0</div>
+        </section>
+        <section>
+            <span> Der Highscore:</span>
+            <div id="showHighscore2"></div>
+
+        </section>
+    </article>
+    
+    <script>
+
+        ganzesSpiel('canvas', 65, 87, 68, 83, 'scoreBoard', 'showHighscore');
+        ganzesSpiel('canvas2', 37, 38, 39, 40, 'scoreBoard2', 'showHighscore2');
+
+
+        function ganzesSpiel(target, a, w, d, s, scoreBoard, showHighscore) {
+            console.log('functionExecuted')
+            let highscore = localStorage.getItem(target)
+            document.getElementById(showHighscore).innerHTML = highscore;
+            let canvas = document.getElementById(target);
+            let ctx = canvas.getContext('2d');
+            let rows = 20,
+                cols = 20,
+                snake = [
+                    { x: 19, y: 3 }
+                ],
+                food,
+                cellWidth = canvas.width / cols,  //pixelbreite
+                cellHeight = canvas.height / rows, //pixelhöhe
+                direction = 'LEFT';
+            let foodCollected = false;
+
+            placeFood();
+
+            setInterval(gameLoop, 200)
+            document.addEventListener('keydown', keyDown)
+
+            draw();
+
+            function draw() {
+                ctx.fillStyle = 'black';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'white';
+
+                snake.forEach(part => add(part.x, part.y))
+
+                ctx.fillStyle = 'yellow';
+                add(food.x, food.y)
+                requestAnimationFrame(draw);
+            }
+
+
+            function testGameOver() {
+
+                let firstPart = snake[0];
+                let otherParts = snake.slice(1);
+                let duplicatePart = otherParts.find(part => part.x == firstPart.x && part.y == firstPart.y)
+
+
+
+                if (snake[0].x < 0 ||
+                    snake[0].x > cols - 1 ||
+                    snake[0].y < 0 ||
+                    snake[0].y > rows - 1 ||
+                    duplicatePart
+                ) {
+                    placeFood();
+                    snake =
+                        [
+                            { x: 19, y: 3 }
+                        ],
+                        direction = 'LEFT';
+                }
+            }
+
+
+
+            function placeFood() {
+                let randomX = Math.floor(Math.random() * cols);
+                let randomY = Math.floor(Math.random() * rows);
+
+                food = {
+                    x: randomX,
+                    y: randomY
+                }
+            }
+
+
+
+            function add(x, y) {
+
+                ctx.fillRect(x * cellWidth, y * cellHeight, cellWidth - 1, cellHeight - 1)
+            }
+
+            function shiftSnake() { // Für die parts der Schlange. Die Koordinaten des vorherigen parts werden an den nächsten gegeben.
+                for (let i = snake.length - 1; i > 0; i--) {
+                    const part = snake[i];
+                    const lastPart = snake[i - 1];
+                    part.x = lastPart.x;
+                    part.y = lastPart.y;
+                    console.log(snake.length)
+                    compareHighscore();
+                    let scoreB = document.getElementById(scoreBoard).innerHTML = snake.length;
+                }
+            }
+
+
+
+            function gameLoop() { //Die Steuerung. [0] ist der Kopf der Schlange.
+                testGameOver();
+                if (foodCollected) {
+                    snake = [{
+                        x: snake[0].x,
+                        y: snake[0].y
+                    }, ...snake];
+                    foodCollected = false
+                }
+
+                shiftSnake();
+
+                if (direction == 'LEFT') {
+                    snake[0].x--;
+                }
+                if (direction == 'RIGHT') {
+                    snake[0].x++;
+                }
+                if (direction == 'UP') {
+                    snake[0].y--;
+                }
+                if (direction == 'DOWN') {
+                    snake[0].y++;
+                }
+                if (snake[0].x == food.x &&
+                    snake[0].y == food.y) {
+                    foodCollected = true;
+                    placeFood();
+                }
+            }
+
+            function keyDown(e) {
+                if (e.keyCode == a) {
+                    direction = 'LEFT'
+                }
+                if (e.keyCode == w) {
+                    direction = 'UP'
+                }
+                if (e.keyCode == d) {
+                    direction = 'RIGHT'
+                }
+                if (e.keyCode == s) {
+                    direction = 'DOWN'
+                }
+            }
+            
+            function compareHighscore() {
+
+                if (snake.length > highscore) {
+                    highscore = snake.length;
+                    document.getElementById(showHighscore).innerHTML = highscore;
+                    console.log('compareHighscoreExec')
+                    localStorage.setItem(target,highscore);
+                }
+
+            }
+        }
+    </script>
+</body>
+
+</html>
